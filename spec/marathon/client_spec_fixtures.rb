@@ -28,7 +28,7 @@ module Marathon
             }
           },
       
-          "healthchecks": 
+          "healthChecks": 
           [
             {
               "path": "/",
@@ -101,7 +101,7 @@ module Marathon
             }
           },
       
-          "healthchecks": 
+          "healthChecks": 
           [
             {
               "path": "/",
@@ -172,7 +172,7 @@ module Marathon
             }
           },
       
-          "healthchecks": 
+          "healthChecks": 
           [
             {
               "path": "/",
@@ -267,7 +267,7 @@ module Marathon
             }
           },
     
-          "healthchecks": [],
+          "healthChecks": [],
           
           "tasks": 
           [
@@ -309,7 +309,7 @@ module Marathon
             }
           },
     
-          "healthchecks": 
+          "healthChecks": 
           [
             {
               "path": "/",
