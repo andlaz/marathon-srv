@@ -8,8 +8,9 @@ Gem::Specification.new do |spec|
   spec.version       = Marathon::Srv::VERSION
   spec.authors       = ["Andras Szerdahelyi"]
   spec.email         = ["andras.szerdahelyi@gmail.com"]
+  spec.license       = "MIT"
 
-  spec.summary       = %q{CLI to 'resolve' Marathon managed docker containers to slave ip and container ports to host ports }
+  spec.summary       = %q{A simple CLI/library to resolve (BRIDGE networked) ports of Docker containerized Marathon application tasks/instances to Mesos slave host names and host ports}
   spec.description   = %q{Uses the Marathon API to match one or more ports set up under BRIDGE Docker networking for a Marathon application (grouped or not) to slave ip/s and slave (host) port/s}
   spec.homepage      = "https://github.com/andlaz/marathon-srv"
 
