@@ -1,202 +1,8 @@
 require "spec_helper"
+require "marathon/client_spec_fixtures"
 require "marathon/srv/client"
 
 describe Marathon::Srv::Client do
-  
-  APP_JSON = '{
-    "app": 
-    {
-      "container": 
-      {
-        "type": "DOCKER",
-        "docker": 
-        {
-          "portMappings": 
-          [
-            {
-              "containerPort": 5000,
-              "protocol": "tcp"
-            },
-  
-            {
-              "containerPort": 5001,
-              "protocol": "tcp"
-            }
-          ]
-        }
-      },
-  
-      "healthchecks": 
-      [
-        {
-          "path": "/",
-          "protocol": "TCP",
-          "portIndex": 0,
-          "gracePeriodSeconds": 120,
-          "intervalSeconds": 15,
-          "timeoutSeconds": 5,
-          "maxConsecutiveFailures": 0,
-          "ignoreHttp1xx": false
-        }
-      ],
-  
-      "tasks": 
-      [
-        {
-          "healthCheckResults": 
-          [
-            {
-              "alive": true
-            }
-          ],
-  
-          "host": "slave-1",
-          "ports": 
-          [
-            30051,
-            30052
-          ]
-        }
-      ]
-    }
-  }'
-  
-  NON_DOCKER_APP_JSON = '{
-    "app": 
-    {
-      "container": 
-      {
-        "type": "NOTDOCKER!"
-      }
-    }
-  }'
-  
-  NO_TASKS_APP_JSON = '{
-    "app": 
-    {
-      "container": 
-      {
-        "type": "DOCKER",
-        "docker": 
-        {
-          "portMappings": 
-          [
-            {
-              "containerPort": 5000,
-              "protocol": "tcp"
-            },
-  
-            {
-              "containerPort": 5001,
-              "protocol": "tcp"
-            }
-          ]
-        }
-      },
-  
-      "tasks": []
-    }
-  }'
-  
-  NO_HEALTHCHECK_APP_JSON = '{
-    "app": 
-    {
-      "container": 
-      {
-        "type": "DOCKER",
-        "docker": 
-        {
-          "portMappings": 
-          [
-            {
-              "containerPort": 5000,
-              "protocol": "tcp"
-            },
-  
-            {
-              "containerPort": 5001,
-              "protocol": "tcp"
-            }
-          ]
-        }
-      },
-
-      "healthchecks": [],
-      
-      "tasks": 
-      [
-        {
-          "healthCheckResults": 
-          [],
-  
-          "host": "slave-1",
-          "ports": 
-          [
-            30051,
-            30052
-          ]
-        }
-      ]
-    }
-  }'  
-  
-  NO_HEALTHY_TASKS_APP_JSON = '{
-    "app": 
-    {
-      "container": 
-      {
-        "type": "DOCKER",
-        "docker": 
-        {
-          "portMappings": 
-          [
-            {
-              "containerPort": 5000,
-              "protocol": "tcp"
-            },
-  
-            {
-              "containerPort": 5001,
-              "protocol": "tcp"
-            }
-          ]
-        }
-      },
-
-      "healthchecks": 
-      [
-        {
-          "path": "/",
-          "protocol": "TCP",
-          "portIndex": 0,
-          "gracePeriodSeconds": 120,
-          "intervalSeconds": 15,
-          "timeoutSeconds": 5,
-          "maxConsecutiveFailures": 0,
-          "ignoreHttp1xx": false
-        }
-      ],
-      
-      "tasks": 
-      [
-        {
-          "healthCheckResults": 
-          [
-            {
-              "alive": false
-            }
-          ],
-  
-          "host": "slave-1",
-          "ports": 
-          [
-            30051,
-            30052
-          ]
-        }
-      ]
-    }
-  }'
   
   describe "#intialize" do
     
@@ -234,7 +40,7 @@ describe Marathon::Srv::Client do
     it "raises on non docker containerizer application" do
       
       stub_request(:any, "http://example.tld/v2/api/apps/application-id").
-        to_return(:status => 200, :body => NON_DOCKER_APP_JSON)        
+        to_return(:status => 200, :body => Marathon::Srv::Fixtures::NON_DOCKER_APP_JSON)        
 
       client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})    
       expect { client.get_bridged_port_array "application-id" }.to raise_error(Marathon::Srv::NotDockerContainerizedApplicationError)
@@ -245,7 +51,7 @@ describe Marathon::Srv::Client do
     it "raises on dockerized application with no running tasks" do
       
       stub_request(:any, "http://example.tld/v2/api/apps/application-id").
-        to_return(:status => 200, :body => NO_TASKS_APP_JSON)
+        to_return(:status => 200, :body => Marathon::Srv::Fixtures::NO_TASKS_APP_JSON)
         
       client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})          
       expect { client.get_bridged_port_array "application-id" }.to raise_error(Marathon::Srv::NoRunningTasksFoundError)
@@ -257,7 +63,7 @@ describe Marathon::Srv::Client do
       it "raises on dockerized application with no health checks defined" do
         
         stub_request(:any, "http://example.tld/v2/api/apps/application-id").
-          to_return(:status => 200, :body => NO_HEALTHCHECK_APP_JSON)      
+          to_return(:status => 200, :body => Marathon::Srv::Fixtures::NO_HEALTHCHECK_APP_JSON)      
         
         client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})          
         expect { client.get_bridged_port_array "application-id", true }.to raise_error(Marathon::Srv::NoHealthChecksDefinedError)
@@ -268,7 +74,7 @@ describe Marathon::Srv::Client do
       it "returns empty array on dockerized application with no healthy tasks" do
 
         stub_request(:any, "http://example.tld/v2/api/apps/application-id").
-          to_return(:status => 200, :body => NO_HEALTHY_TASKS_APP_JSON)      
+          to_return(:status => 200, :body => Marathon::Srv::Fixtures::NO_HEALTHY_TASKS_APP_JSON)      
         
         client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})          
         expect(client.get_bridged_port_array "application-id", true).to eq([])
@@ -286,7 +92,7 @@ describe Marathon::Srv::Client do
     it "returns port array" do
       
       stub_request(:any, "http://example.tld/v2/api/apps/application-id").
-        to_return(:status => 200, :body => APP_JSON)  
+        to_return(:status => 200, :body => Marathon::Srv::Fixtures::APP_JSON)  
         
       client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})  
       expect(client.get_bridged_port_array "application-id").to eq([{:host=>"slave-1", :services=>{"tcp"=>{5000=>30051, 5001=>30052}}}])
