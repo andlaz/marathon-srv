@@ -18,7 +18,7 @@ module Marathon
       
       API_VERSION = "v2"
       
-      PATH_FIND_APP = "/#{API_VERSION}/api/apps/%s"
+      PATH_FIND_APP = "/#{API_VERSION}/apps/%s"
       
       attr_reader :marathon_api
       
