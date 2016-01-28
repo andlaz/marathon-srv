@@ -4,6 +4,150 @@ module Marathon
   module Srv
     
     module Fixtures
+
+      SOME_HEALTHY_TASKS_APP_JSON = '{
+        "app": 
+        {
+          "container": 
+          {
+            "type": "DOCKER",
+            "docker": 
+            {
+              "portMappings": 
+              [
+                {
+                  "containerPort": 5000,
+                  "protocol": "tcp"
+                },
+      
+                {
+                  "containerPort": 5001,
+                  "protocol": "tcp"
+                }
+              ]
+            }
+          },
+      
+          "healthchecks": 
+          [
+            {
+              "path": "/",
+              "protocol": "TCP",
+              "portIndex": 0,
+              "gracePeriodSeconds": 120,
+              "intervalSeconds": 15,
+              "timeoutSeconds": 5,
+              "maxConsecutiveFailures": 0,
+              "ignoreHttp1xx": false
+            }
+          ],
+      
+          "tasks": 
+          [
+            {
+              "healthCheckResults": 
+              [
+                {
+                  "alive": false
+                }
+              ],
+      
+              "host": "slave-1",
+              "ports": 
+              [
+                30051,
+                30052
+              ]
+            },
+            {
+              "healthCheckResults": 
+              [
+                {
+                  "alive": true
+                }
+              ],
+      
+              "host": "slave-2",
+              "ports": 
+              [
+                30061,
+                30072
+              ]
+            }
+          ]
+        }
+      }' 
+      
+      SOME_TASK_FAILURES_APP_JSON = '{
+        "app": 
+        {
+          "container": 
+          {
+            "type": "DOCKER",
+            "docker": 
+            {
+              "portMappings": 
+              [
+                {
+                  "containerPort": 5000,
+                  "protocol": "tcp"
+                },
+      
+                {
+                  "containerPort": 5001,
+                  "protocol": "tcp"
+                }
+              ]
+            }
+          },
+      
+          "healthchecks": 
+          [
+            {
+              "path": "/",
+              "protocol": "TCP",
+              "portIndex": 0,
+              "gracePeriodSeconds": 120,
+              "intervalSeconds": 15,
+              "timeoutSeconds": 5,
+              "maxConsecutiveFailures": 0,
+              "ignoreHttp1xx": false
+            },
+            {
+              "path": "/",
+              "protocol": "TCP",
+              "portIndex": 1,
+              "gracePeriodSeconds": 120,
+              "intervalSeconds": 15,
+              "timeoutSeconds": 5,
+              "maxConsecutiveFailures": 0,
+              "ignoreHttp1xx": false
+            }
+          ],
+      
+          "tasks": 
+          [
+            {
+              "healthCheckResults": 
+              [
+                {
+                  "alive": true
+                },
+                {
+                  "alive": false
+                }
+              ],
+      
+              "host": "slave-1",
+              "ports": 
+              [
+                30051,
+                30052
+              ]
+            }
+          ]
+        }
+      }'      
       
       APP_JSON = '{
         "app": 

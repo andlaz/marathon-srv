@@ -68,7 +68,6 @@ describe Marathon::Srv::Client do
         client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})          
         expect { client.get_bridged_port_array "application-id", true }.to raise_error(Marathon::Srv::NoHealthChecksDefinedError)
 
-
       end
       
       it "returns empty array on dockerized application with no healthy tasks" do
@@ -81,21 +80,23 @@ describe Marathon::Srv::Client do
         
       end
       
-      it "returns ports only on healthy tasks" do
+      it "returns empty array on dockerized application with tasks failing some health checks" do
+        stub_request(:any, "http://example.tld/v2/api/apps/application-id").
+          to_return(:status => 200, :body => Marathon::Srv::Fixtures::SOME_TASK_FAILURES_APP_JSON)      
         
+        client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})          
+        expect(client.get_bridged_port_array "application-id", true).to eq([])        
       end
       
+      it "returns ports only on healthy tasks" do
+        stub_request(:any, "http://example.tld/v2/api/apps/application-id").
+          to_return(:status => 200, :body => Marathon::Srv::Fixtures::SOME_HEALTHY_TASKS_APP_JSON)   
+          
+        client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})          
+        expect(client.get_bridged_port_array "application-id", true).to eq([{:host=>"slave-2", :services=>{"tcp"=>{5000=>30061, 5001=>30072}}}])        
+                  
+      end
       
-    end
-    
-    
-    it "returns port array" do
-      
-      stub_request(:any, "http://example.tld/v2/api/apps/application-id").
-        to_return(:status => 200, :body => Marathon::Srv::Fixtures::APP_JSON)  
-        
-      client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})  
-      expect(client.get_bridged_port_array "application-id").to eq([{:host=>"slave-1", :services=>{"tcp"=>{5000=>30051, 5001=>30052}}}])
       
     end
     
