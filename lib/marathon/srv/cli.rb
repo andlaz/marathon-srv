@@ -12,6 +12,7 @@ module Marathon
       desc "find", "Returns a list of ip addresses and port numbers for an application name and service port number"
       option :marathon, :required => true, :desc => "Marathon API URL"
       option :app_id, :reqired => true, :desc => "Marathon application id"
+      option :container_port, :required => true, :desc => "Docker container-side port to translate"
       option :healthy, :default => true, :desc => "Consider healthy application instances/tasks only"
       def find
         
