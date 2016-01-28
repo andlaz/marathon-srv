@@ -1,7 +1,7 @@
 require "spec_helper"
-require "marathon/client"
+require "marathon/srv/client"
 
-describe Marathon::Client do
+describe Marathon::Srv::Client do
   
   APP_JSON = '{
     "app": 
@@ -202,7 +202,7 @@ describe Marathon::Client do
     
     it "sets marathon api url" do
       
-      client = Marathon::Client.new("foo", {})
+      client = Marathon::Srv::Client.new("foo", {})
       expect(client.marathon_api).to eq "foo"
       
     end
@@ -216,8 +216,8 @@ describe Marathon::Client do
       stub_request(:any, "http://example.tld/v2/api/apps/application-id").
         to_return(:status => 404)
         
-      client = Marathon::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})
-      expect { client.get_bridged_port_array "application-id" }.to raise_error(Marathon::InvalidResponseCodeError)
+      client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})
+      expect { client.get_bridged_port_array "application-id" }.to raise_error(Marathon::Srv::InvalidResponseCodeError)
       
     end
     
@@ -226,8 +226,8 @@ describe Marathon::Client do
       stub_request(:any, "http://example.tld/v2/api/apps/application-id").
         to_return(:status => 200, :body => "definitely not json")
         
-      client = Marathon::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})    
-      expect { client.get_bridged_port_array "application-id" }.to raise_error(Marathon::InvalidJSONResponseError)
+      client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})    
+      expect { client.get_bridged_port_array "application-id" }.to raise_error(Marathon::Srv::InvalidJSONResponseError)
       
     end
     
@@ -236,8 +236,8 @@ describe Marathon::Client do
       stub_request(:any, "http://example.tld/v2/api/apps/application-id").
         to_return(:status => 200, :body => NON_DOCKER_APP_JSON)        
 
-      client = Marathon::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})    
-      expect { client.get_bridged_port_array "application-id" }.to raise_error(Marathon::NotDockerContainerizedApplicationError)
+      client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})    
+      expect { client.get_bridged_port_array "application-id" }.to raise_error(Marathon::Srv::NotDockerContainerizedApplicationError)
 
       
     end
@@ -247,8 +247,8 @@ describe Marathon::Client do
       stub_request(:any, "http://example.tld/v2/api/apps/application-id").
         to_return(:status => 200, :body => NO_TASKS_APP_JSON)
         
-      client = Marathon::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})          
-      expect { client.get_bridged_port_array "application-id" }.to raise_error(Marathon::NoRunningTasksFoundError)
+      client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})          
+      expect { client.get_bridged_port_array "application-id" }.to raise_error(Marathon::Srv::NoRunningTasksFoundError)
       
     end
     
@@ -259,8 +259,8 @@ describe Marathon::Client do
         stub_request(:any, "http://example.tld/v2/api/apps/application-id").
           to_return(:status => 200, :body => NO_HEALTHCHECK_APP_JSON)      
         
-        client = Marathon::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})          
-        expect { client.get_bridged_port_array "application-id", true }.to raise_error(Marathon::NoHealthChecksDefinedError)
+        client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})          
+        expect { client.get_bridged_port_array "application-id", true }.to raise_error(Marathon::Srv::NoHealthChecksDefinedError)
 
 
       end
@@ -270,7 +270,7 @@ describe Marathon::Client do
         stub_request(:any, "http://example.tld/v2/api/apps/application-id").
           to_return(:status => 200, :body => NO_HEALTHY_TASKS_APP_JSON)      
         
-        client = Marathon::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})          
+        client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})          
         expect(client.get_bridged_port_array "application-id", true).to eq([])
         
       end
@@ -288,7 +288,7 @@ describe Marathon::Client do
       stub_request(:any, "http://example.tld/v2/api/apps/application-id").
         to_return(:status => 200, :body => APP_JSON)  
         
-      client = Marathon::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})  
+      client = Marathon::Srv::Client.new("http://example.tld/v2/api", {:log_level => Logger::DEBUG})  
       expect(client.get_bridged_port_array "application-id").to eq([{:host=>"slave-1", :services=>{"tcp"=>{5000=>30051, 5001=>30052}}}])
       
     end

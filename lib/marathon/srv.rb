@@ -1,5 +1,5 @@
 require "marathon/srv/version"
-require "marathon/client"
+require "marathon/srv/client"
 require "rubygems"
 require "thor"
 require "logger"
