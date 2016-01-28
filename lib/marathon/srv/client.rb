@@ -22,9 +22,11 @@ module Marathon
       
       attr_reader :marathon_api
       
-      def initialize(marathon_api_url, options = {})
+      def initialize(marathon_api_url, username, password, options = {})
         
         @marathon_api = marathon_api_url
+        @username = username
+        @password = password
         
         @logger = Logger.new(STDOUT)
         @logger.level = options[:log_level] || Logger::ERROR
@@ -40,7 +42,10 @@ module Marathon
         api = URI::join(marathon_api, PATH_FIND_APP % application_id)
         Net::HTTP.new(api.host, api.port).start do |http|
           
-          response = http.request Net::HTTP::Get.new api
+          req = Net::HTTP::Get.new api
+          (req.basic_auth @username, @password) if (@username != nil && @password != nil)
+          
+          response = http.request req
           @logger.debug "Received response: #{response}"
           
           raise Marathon::Srv::InvalidResponseCodeError.new response.code unless response.code == "200"
@@ -54,7 +59,7 @@ module Marathon
             
             raise Marathon::Srv::NotDockerContainerizedApplicationError.new unless app["container"]["type"] == "DOCKER"
             raise Marathon::Srv::NoRunningTasksFoundError.new unless app["tasks"].size > 0
-            raise Marathon::Srv::NoHealthChecksDefinedError.new unless app["healthchecks"].size > 0
+            raise Marathon::Srv::NoHealthChecksDefinedError.new unless app["healthChecks"] != nil && app["healthChecks"].size > 0
             
             # collect slave ports of (healthy) tasks
             ports=[]
