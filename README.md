@@ -41,8 +41,6 @@ tl;dr poor man's port/service discovery for BRIDGEd Docker Containerized Maratho
     client = Marathon::Srv::Client.new "http://marathon.domain.tld:8080", "username", "password", {:log_level => Logger::DEBUG}
     client.get_bridged_port_array "best-redis-cluster", true # 2nd parameter : consider healthy tasks only
     
-( n.b.: The Client object returns all BRIDGEd ports, the CLI filters these down to only --container-port )
-
 ## Notes
 
 ### Tests
