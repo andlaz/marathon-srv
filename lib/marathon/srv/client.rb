@@ -73,8 +73,7 @@ module Marathon
                   (passing=false; @logger.debug "%s has failing health check, not considering it" % task; break) unless health_check_result["alive"] == true
                   
                 end
-                @logger.debug "All health checks passing - filtering ports for task #{task}"
-                ports.push filter_ports(app, task, filter_ports) if passing
+                (@logger.debug "All health checks passing - filtering ports for task #{task}"; ports.push filter_ports(app, task, filter_ports)) if passing
                 
               else
                 # just add task
