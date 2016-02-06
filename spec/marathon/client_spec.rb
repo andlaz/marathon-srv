@@ -104,6 +104,31 @@ describe Marathon::Srv::Client do
       
     end
     
+    context "when filtering for certain ports" do
+      
+      it "returns only mappings with only the provided container ports" do
+        
+        stub_request(:any, "http://example.tld/v2/apps/application-id").
+          to_return(:status => 200, :body => Marathon::Srv::Fixtures::ALL_HEALTHY_TASKS_APP_JSON)
+        
+        client = Marathon::Srv::Client.new("http://example.tld", nil, nil, {:log_level => Logger::DEBUG})
+        expect(client.get_bridged_port_array "application-id", false, [5001]).to eq([{:host=>"slave-1", :services=>{"tcp"=>{5001=>30052}}},{:host=>"slave-2", :services=>{"tcp"=>{5001=>30077}}}])
+        
+      end
+      
+      it "returns empty array when no ports match" do
+        
+        stub_request(:any, "http://example.tld/v2/apps/application-id").
+          to_return(:status => 200, :body => Marathon::Srv::Fixtures::ALL_HEALTHY_TASKS_APP_JSON)
+        
+        client = Marathon::Srv::Client.new("http://example.tld", nil, nil, {:log_level => Logger::DEBUG})
+        expect(client.get_bridged_port_array "application-id", false, [5003]).to eq([])
+          
+        
+      end
+      
+    end
+    
   end
   
 end

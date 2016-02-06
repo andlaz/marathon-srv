@@ -35,9 +35,9 @@ module Marathon
         
       end
       
-      def get_bridged_port_array(application_id, healthy_tasks_only=false)
+      def get_bridged_port_array(application_id, healthy_tasks_only=false, filter_ports=[])
         
-        @logger.debug "Attempting to fetch application #{application_id} object from API, healthy_tasks_only: #{healthy_tasks_only} "
+        @logger.debug "Attempting to fetch application #{application_id} object from API, healthy_tasks_only: #{healthy_tasks_only}, interested in container ports #{filter_ports} "
   
         api = URI::join(marathon_api, PATH_FIND_APP % application_id)
         Net::HTTP.new(api.host, api.port).start do |http|
@@ -74,15 +74,22 @@ module Marathon
                   
                 end
                 @logger.debug "All health checks passing - filtering ports for task #{task}"
-                ports.push filter_ports(app, task) if passing
+                ports.push filter_ports(app, task, filter_ports) if passing
                 
               else
                 # just add task
                 @logger.debug "Ignoring health checks - filtering ports for task #{task}"
-                ports.push filter_ports(app, task)
+                ports.push filter_ports(app, task, filter_ports)
                 
               end
               
+            end
+            
+            ports.reject! do |host| 
+            
+              host[:services].reject! {|protocol, services| services.size == 0 }
+              host[:services].size == 0
+            
             end
             
             @logger.debug "Collected ports #{ports}"
@@ -99,11 +106,13 @@ module Marathon
       end
   
       protected
-      def filter_ports(app, task)
+      def filter_ports(app, task, filter_ports=[])
         port = {:host => task["host"], :services => {}}
         app["container"]["docker"]["portMappings"].each_with_index do |port_mapping, port_i|
-          port[:services][port_mapping["protocol"]] = {} unless port[:services].has_key? port_mapping["protocol"]
-          port[:services][port_mapping["protocol"]][port_mapping["containerPort"]] = task["ports"][port_i]
+          if (filter_ports.size == 0 || (filter_ports.member? port_mapping["containerPort"]))
+            port[:services][port_mapping["protocol"]] = {} unless port[:services].has_key? port_mapping["protocol"]
+            port[:services][port_mapping["protocol"]][port_mapping["containerPort"]] = task["ports"][port_i]
+          end
           
         end
         
