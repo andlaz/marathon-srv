@@ -28,20 +28,6 @@ module Marathon
         begin
           hosts = client.get_bridged_port_array options[:app_id], (options[:healthy] ? true : falses)
           
-          
-          hosts.reject! do |host| 
-            
-            host[:services].reject! do |protocol, services|
-          
-              services.reject! {|port, host_port| port.to_s != options[:container_port]}
-              services.size == 0
-                        
-            end
-            
-            host[:services].size == 0
-            
-          end
-          
           if options[:json]
             puts JSON hosts
           else

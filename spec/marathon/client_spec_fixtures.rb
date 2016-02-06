@@ -149,7 +149,7 @@ module Marathon
         }
       }'      
       
-      APP_JSON = '{
+      ALL_HEALTHY_TASKS_APP_JSON = '{
         "app": 
         {
           "container": 
@@ -201,6 +201,21 @@ module Marathon
               [
                 30051,
                 30052
+              ]
+            },
+            {
+              "healthCheckResults": 
+              [
+                {
+                  "alive": true
+                }
+              ],
+      
+              "host": "slave-2",
+              "ports": 
+              [
+                30093,
+                30077
               ]
             }
           ]
