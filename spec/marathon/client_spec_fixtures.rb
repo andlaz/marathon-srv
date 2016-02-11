@@ -6,8 +6,10 @@ module Marathon
     module Fixtures
 
       SOME_HEALTHY_TASKS_APP_JSON = '{
-        "app": 
+        "apps":
+        [
         {
+          "id": "best-app",
           "container": 
           {
             "type": "DOCKER",
@@ -76,11 +78,14 @@ module Marathon
             }
           ]
         }
+        ]
       }' 
       
       SOME_TASK_FAILURES_APP_JSON = '{
-        "app": 
+        "apps":
+        [
         {
+          "id": "best-app",
           "container": 
           {
             "type": "DOCKER",
@@ -147,11 +152,14 @@ module Marathon
             }
           ]
         }
+        ]
       }'      
       
       ALL_HEALTHY_TASKS_APP_JSON = '{
-        "app": 
+        "apps": 
+        [
         {
+          "id": "best-app",
           "container": 
           {
             "type": "DOCKER",
@@ -220,21 +228,27 @@ module Marathon
             }
           ]
         }
+        ]
       }'
       
       NON_DOCKER_APP_JSON = '{
-        "app": 
+        "apps": 
+        [
         {
+          "id": "best-app",
           "container": 
           {
             "type": "NOTDOCKER!"
           }
         }
+        ]
       }'
       
       NO_TASKS_APP_JSON = '{
-        "app": 
+        "apps":
+        [ 
         {
+          "id": "best-app",
           "container": 
           {
             "type": "DOCKER",
@@ -257,11 +271,14 @@ module Marathon
       
           "tasks": []
         }
+        ]
       }'
       
       NO_HEALTHCHECK_APP_JSON = '{
-        "app": 
+        "apps":
+        [ 
         {
+          "id": "best-app",
           "container": 
           {
             "type": "DOCKER",
@@ -299,11 +316,14 @@ module Marathon
             }
           ]
         }
+        ]
       }'  
       
       NO_HEALTHY_TASKS_APP_JSON = '{
-        "app": 
+        "apps": 
+        [
         {
+          "id": "best-app",
           "container": 
           {
             "type": "DOCKER",
@@ -357,6 +377,7 @@ module Marathon
             }
           ]
         }
+        ]
       }'        
       
     end

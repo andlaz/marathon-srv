@@ -26,25 +26,29 @@ module Marathon
         client = Marathon::Srv::Client.new options[:marathon], options[:username], options[:password], {:log_level => (options[:verbose] ? Logger::DEBUG : Logger::ERROR)}
         
         begin
-          hosts = client.get_bridged_port_array options[:app_id], (options[:healthy] ? true : false), (options[:container_port] != nil ? [options[:container_port]] : [])
+          apps = client.get_bridged_port_array options[:app_id], (options[:healthy] ? true : false), (options[:container_port] != nil ? [options[:container_port]] : [])
           
           if options[:json]
-            puts JSON hosts
+            puts JSON apps
           else
             
             lines=[]
-            hosts.each do |host|
+            apps.each do |app, hosts|
               
-              host[:services].each do |protocol, services|
-                services.each do |port, host_port|
+              hosts.each do |host|
+                
+                host[:services].each do |protocol, services|
+                  services.each do |port, host_port|
                   line=[]
-                  line.push protocol
-                  line.push host[:host]
-                  line.push port, host_port
+                  line.push app, host[:host], protocol, port, host_port
                   lines.push line.join ","
+                  end
+                  
                 end
                 
+
               end
+              
               
             end
             

@@ -18,7 +18,7 @@ module Marathon
       
       API_VERSION = "v2"
       
-      PATH_FIND_APP = "/#{API_VERSION}/apps/%s"
+      PATH_FIND_APP = "/#{API_VERSION}/apps?id=%s&embed=tasks"
       
       attr_reader :marathon_api
       
@@ -53,47 +53,55 @@ module Marathon
           # parse JSON
           begin
             @logger.debug "Parsing body #{response.body}"
-            app = (JSON response.body)["app"]
-            
-            @logger.debug "Retrieved app object #{app}"
-            
-            raise Marathon::Srv::NotDockerContainerizedApplicationError.new unless app["container"]["type"] == "DOCKER"
-            raise Marathon::Srv::NoRunningTasksFoundError.new unless app["tasks"].size > 0
-            raise Marathon::Srv::NoHealthChecksDefinedError.new unless app["healthChecks"] != nil && app["healthChecks"].size > 0
-            
-            # collect slave ports of (healthy) tasks
-            ports=[]
-            app["tasks"].each do |task|
+            apps = (JSON response.body)["apps"]
+            @logger.debug "Retrieved a total #{apps.size} app objects"
+            app_ports = {}
+            apps.each do |app|
               
-              if(healthy_tasks_only)
-                @logger.debug "Verifying health checks for task #{task}"
-                # all health checks must be passing
-                passing=true
-                task["healthCheckResults"].each do |health_check_result|
-                  (passing=false; @logger.debug "%s has failing health check, not considering it" % task; break) unless health_check_result["alive"] == true
+              @logger.debug "Retrieved app object #{app}"
+              
+              raise Marathon::Srv::NotDockerContainerizedApplicationError.new unless app["container"]["type"] == "DOCKER"
+              raise Marathon::Srv::NoRunningTasksFoundError.new unless app["tasks"].size > 0
+              raise Marathon::Srv::NoHealthChecksDefinedError.new unless app["healthChecks"] != nil && app["healthChecks"].size > 0
+              
+              # collect slave ports of (healthy) tasks
+              ports=[]
+              app["tasks"].each do |task|
+                
+                if(healthy_tasks_only)
+                  @logger.debug "Verifying health checks for task #{task}"
+                  # all health checks must be passing
+                  passing=true
+                  task["healthCheckResults"].each do |health_check_result|
+                    (passing=false; @logger.debug "%s has failing health check, not considering it" % task; break) unless health_check_result["alive"] == true
+                    
+                  end
+                  (@logger.debug "All health checks passing - filtering ports for task #{task}"; ports.push filter_ports(app, task, filter_ports)) if passing
+                  
+                else
+                  # just add task
+                  @logger.debug "Ignoring health checks - filtering ports for task #{task}"
+                  ports.push filter_ports(app, task, filter_ports)
                   
                 end
-                (@logger.debug "All health checks passing - filtering ports for task #{task}"; ports.push filter_ports(app, task, filter_ports)) if passing
-                
-              else
-                # just add task
-                @logger.debug "Ignoring health checks - filtering ports for task #{task}"
-                ports.push filter_ports(app, task, filter_ports)
                 
               end
               
+              # cleanup
+              ports.reject! do |host| 
+              
+                host[:services].reject! {|protocol, services| services.size == 0 }
+                host[:services].size == 0
+              
+              end
+              
+              @logger.debug "Collected ports #{ports} for #{app["id"]}"
+              app_ports[app["id"]] = ports
+              
             end
             
-            ports.reject! do |host| 
-            
-              host[:services].reject! {|protocol, services| services.size == 0 }
-              host[:services].size == 0
-            
-            end
-            
-            @logger.debug "Collected ports #{ports}"
-            ports
-  
+
+            app_ports
           rescue JSON::ParserError => e
             raise Marathon::Srv::InvalidJSONResponseError.new e
             
@@ -108,7 +116,7 @@ module Marathon
       def filter_ports(app, task, filter_ports=[])
         port = {:host => task["host"], :services => {}}
         app["container"]["docker"]["portMappings"].each_with_index do |port_mapping, port_i|
-          if (filter_ports.size == 0 || (filter_ports.member? port_mapping["containerPort"]))
+          if (filter_ports.size == 0 || (filter_ports.include? port_mapping["containerPort"]))
             port[:services][port_mapping["protocol"]] = {} unless port[:services].has_key? port_mapping["protocol"]
             port[:services][port_mapping["protocol"]][port_mapping["containerPort"]] = task["ports"][port_i]
           end
