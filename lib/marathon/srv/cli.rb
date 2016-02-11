@@ -26,7 +26,7 @@ module Marathon
         client = Marathon::Srv::Client.new options[:marathon], options[:username], options[:password], {:log_level => (options[:verbose] ? Logger::DEBUG : Logger::ERROR)}
         
         begin
-          hosts = client.get_bridged_port_array options[:app_id], (options[:healthy] ? true : falses)
+          hosts = client.get_bridged_port_array options[:app_id], (options[:healthy] ? true : false), [options[:container_port]]
           
           if options[:json]
             puts JSON hosts
