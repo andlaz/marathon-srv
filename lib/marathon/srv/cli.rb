@@ -17,7 +17,7 @@ module Marathon
       option :marathon, :required => true, :desc => "Marathon API URL"
       option :app_id, :reqired => true, :desc => "Marathon application id"
       option :protocol, :default => "tcp"
-      option :container_port, :required => true, :desc => "Docker container-side port to translate"
+      option :container_port, :type => :numeric, :required => true, :desc => "Docker container-side port to translate"
       option :username, :required => false
       option :password, :required => false
       option :healthy, :default => true, :desc => "Consider healthy application instances/tasks only"
