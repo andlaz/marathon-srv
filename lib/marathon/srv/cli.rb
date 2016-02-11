@@ -35,16 +35,16 @@ module Marathon
             lines=[]
             hosts.each do |host|
               
-              line=[]
-              line.push host[:host]
               host[:services].each do |protocol, services|
-                line.push protocol
                 services.each do |port, host_port|
-                  line.push host_port
+                  line=[]
+                  line.push protocol
+                  line.push host[:host]
+                  line.push port, host_port
+                  lines.push line.join ","
                 end
                 
               end
-              lines.push line.join ","
               
             end
             
