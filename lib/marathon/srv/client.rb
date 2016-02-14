@@ -66,25 +66,27 @@ module Marathon
               
               # collect slave ports of (healthy) tasks
               ports=[]
-              app["tasks"].each do |task|
-                
-                if(healthy_tasks_only)
-                  @logger.debug "Verifying health checks for task #{task}"
-                  # all health checks must be passing
-                  passing=true
-                  task["healthCheckResults"].each do |health_check_result|
-                    (passing=false; @logger.debug "%s has failing health check, not considering it" % task; break) unless health_check_result["alive"] == true
+              if (app["tasks"] != nil)
+                app["tasks"].each do |task|
+                  
+                  if(healthy_tasks_only)
+                    @logger.debug "Verifying health checks for task #{task}"
+                    # all health checks must be passing
+                    passing=true
+                    task["healthCheckResults"].each do |health_check_result|
+                      (passing=false; @logger.debug "%s has failing health check, not considering it" % task; break) unless health_check_result["alive"] == true
+                      
+                    end
+                    (@logger.debug "All health checks passing - filtering ports for task #{task}"; ports.push filter_ports(app, task, filter_ports)) if passing
+                    
+                  else
+                    # just add task
+                    @logger.debug "Ignoring health checks - filtering ports for task #{task}"
+                    ports.push filter_ports(app, task, filter_ports)
                     
                   end
-                  (@logger.debug "All health checks passing - filtering ports for task #{task}"; ports.push filter_ports(app, task, filter_ports)) if passing
-                  
-                else
-                  # just add task
-                  @logger.debug "Ignoring health checks - filtering ports for task #{task}"
-                  ports.push filter_ports(app, task, filter_ports)
                   
                 end
-                
               end
               
               # cleanup
