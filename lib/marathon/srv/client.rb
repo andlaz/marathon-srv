@@ -62,7 +62,7 @@ module Marathon
               
               raise Marathon::Srv::NotDockerContainerizedApplicationError.new unless app["container"]["type"] == "DOCKER"
               raise Marathon::Srv::NoRunningTasksFoundError.new unless app["tasks"].size > 0
-              raise Marathon::Srv::NoHealthChecksDefinedError.new unless app["healthChecks"] != nil && app["healthChecks"].size > 0
+              raise Marathon::Srv::NoHealthChecksDefinedError.new unless healthy_tasks_only == false || (app["healthChecks"] != nil && app["healthChecks"].size > 0)
               
               # collect slave ports of (healthy) tasks
               ports=[]
@@ -71,14 +71,17 @@ module Marathon
                   
                   if(healthy_tasks_only)
                     @logger.debug "Verifying health checks for task #{task}"
-                    # all health checks must be passing
-                    passing=true
-                    task["healthCheckResults"].each do |health_check_result|
-                      (passing=false; @logger.debug "%s has failing health check, not considering it" % task; break) unless health_check_result["alive"] == true
-                      
+                    if (task["healthCheckResults"] != nil)
+                      # all health checks must be passing
+                      passing=true
+                      task["healthCheckResults"].each do |health_check_result|
+                        (passing=false; @logger.debug "%s has failing health check, not considering it" % task; break) unless health_check_result["alive"] == true
+                        
+                      end
+                      (@logger.debug "All health checks passing - filtering ports for task #{task}"; ports.push filter_ports(app, task, filter_ports)) if passing
+                    else
+                      @logger.debug "No health check results - ignoring task #{task}"
                     end
-                    (@logger.debug "All health checks passing - filtering ports for task #{task}"; ports.push filter_ports(app, task, filter_ports)) if passing
-                    
                   else
                     # just add task
                     @logger.debug "Ignoring health checks - filtering ports for task #{task}"
