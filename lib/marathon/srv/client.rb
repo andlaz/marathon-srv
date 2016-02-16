@@ -60,46 +60,49 @@ module Marathon
               
               @logger.debug "Retrieved app object #{app}"
               
-              raise Marathon::Srv::NotDockerContainerizedApplicationError.new unless app["container"]["type"] == "DOCKER"
-              raise Marathon::Srv::NoRunningTasksFoundError.new unless app["tasks"].size > 0
               raise Marathon::Srv::NoHealthChecksDefinedError.new unless healthy_tasks_only == false || (app["healthChecks"] != nil && app["healthChecks"].size > 0)
               
-              # collect slave ports of (healthy) tasks
               ports=[]
-              if (app["tasks"] != nil)
-                app["tasks"].each do |task|
-                  
-                  if(healthy_tasks_only)
-                    @logger.debug "Verifying health checks for task #{task}"
-                    if (task["healthCheckResults"] != nil)
-                      # all health checks must be passing
-                      passing=true
-                      task["healthCheckResults"].each do |health_check_result|
-                        (passing=false; @logger.debug "%s has failing health check, not considering it" % task; break) unless health_check_result["alive"] == true
-                        
+              if (app["container"]["type"] == "DOCKER")
+              
+                # collect slave ports of (healthy) tasks
+                if (app["tasks"] != nil)
+                  app["tasks"].each do |task|
+                    
+                    if(healthy_tasks_only)
+                      @logger.debug "Verifying health checks for task #{task}"
+                      if (task["healthCheckResults"] != nil)
+                        # all health checks must be passing
+                        passing=true
+                        task["healthCheckResults"].each do |health_check_result|
+                          (passing=false; @logger.debug "%s has failing health check, not considering it" % task; break) unless health_check_result["alive"] == true
+                          
+                        end
+                        (@logger.debug "All health checks passing - filtering ports for task #{task}"; ports.push filter_ports(app, task, filter_ports)) if passing
+                      else
+                        @logger.debug "No health check results - ignoring task #{task}"
                       end
-                      (@logger.debug "All health checks passing - filtering ports for task #{task}"; ports.push filter_ports(app, task, filter_ports)) if passing
                     else
-                      @logger.debug "No health check results - ignoring task #{task}"
+                      # just add task
+                      @logger.debug "Ignoring health checks - filtering ports for task #{task}"
+                      ports.push filter_ports(app, task, filter_ports)
+                      
                     end
-                  else
-                    # just add task
-                    @logger.debug "Ignoring health checks - filtering ports for task #{task}"
-                    ports.push filter_ports(app, task, filter_ports)
                     
                   end
-                  
                 end
+                
+                # cleanup
+                ports.reject! do |host| 
+                
+                  host[:services].reject! {|protocol, services| services.size == 0 }
+                  host[:services].size == 0
+                
+                end
+                
+              
               end
-              
-              # cleanup
-              ports.reject! do |host| 
-              
-                host[:services].reject! {|protocol, services| services.size == 0 }
-                host[:services].size == 0
-              
-              end
-              
+
               @logger.debug "Collected ports #{ports} for #{app["id"]}"
               app_ports[app["id"]] = ports
               

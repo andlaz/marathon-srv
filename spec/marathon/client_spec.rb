@@ -41,24 +41,24 @@ describe Marathon::Srv::Client do
       
     end
     
-    it "raises on non docker containerizer application" do
+    it "returns empty array on docker containerizer application" do
       
       stub_request(:any, "http://example.tld/v2/apps?embed=tasks&id=application-id").
         to_return(:status => 200, :body => Marathon::Srv::Fixtures::NON_DOCKER_APP_JSON)        
 
       client = Marathon::Srv::Client.new("http://example.tld", nil, nil, {:log_level => Logger::DEBUG})    
-      expect { client.get_bridged_port_array "application-id" }.to raise_error(Marathon::Srv::NotDockerContainerizedApplicationError)
+      expect(client.get_bridged_port_array "application-id").to eq({"best-app"=>[]})
 
       
     end
     
-    it "raises on dockerized application with no running tasks" do
+    it "returns empty array dockerized application with no running tasks" do
       
       stub_request(:any, "http://example.tld/v2/apps?embed=tasks&id=application-id").
         to_return(:status => 200, :body => Marathon::Srv::Fixtures::NO_TASKS_APP_JSON)
         
       client = Marathon::Srv::Client.new("http://example.tld", nil, nil, {:log_level => Logger::DEBUG})          
-      expect { client.get_bridged_port_array "application-id" }.to raise_error(Marathon::Srv::NoRunningTasksFoundError)
+      expect(client.get_bridged_port_array "application-id").to eq({"best-app"=>[]})
       
     end
     
