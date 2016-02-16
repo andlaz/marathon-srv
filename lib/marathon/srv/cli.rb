@@ -20,7 +20,7 @@ module Marathon
       option :container_port, :type => :numeric, :desc => "Docker container-side port to translate"
       option :username, :required => false
       option :password, :required => false
-      option :healthy, :default => true, :desc => "Consider healthy application instances/tasks only"
+      option :healthy, :type => :boolean, :default => true, :desc => "Consider healthy application instances/tasks only"
       def find
         
         client = Marathon::Srv::Client.new options[:marathon], options[:username], options[:password], {:log_level => (options[:verbose] ? Logger::DEBUG : Logger::ERROR)}
